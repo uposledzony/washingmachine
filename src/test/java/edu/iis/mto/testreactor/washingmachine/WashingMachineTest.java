@@ -58,6 +58,15 @@ class WashingMachineTest {
         assertThat(status, is(error(ErrorCode.TOO_HEAVY, null)));
     }
 
+    @Test
+    void jeansLaundryBatchOfWeightGreaterThanHalfOfMaxBatchWeightShouldCauseInResultErrorLaundryStatus() {
+        var batch = LaundryBatch.builder().withMaterialType(Material.JEANS).withWeightKg(HALF_OF_MAX_WEIGHT + 1).build();
+        var configuration = ProgramConfiguration.builder().withProgram(Program.MEDIUM).withSpin(true).build();
+        var status = washingMachine.start(batch, configuration);
+
+        assertThat(status, is(error(ErrorCode.TOO_HEAVY, null)));
+    }
+
     private LaundryStatus success(Program program) {
         return LaundryStatus.builder()
                 .withErrorCode(ErrorCode.NO_ERROR)
