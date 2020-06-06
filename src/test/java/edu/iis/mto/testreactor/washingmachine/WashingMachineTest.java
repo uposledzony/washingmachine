@@ -2,16 +2,18 @@ package edu.iis.mto.testreactor.washingmachine;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Assertions.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.matchers.Null;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.AVERAGE_DEGREE;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
@@ -133,6 +135,26 @@ class WashingMachineTest {
         callOrder.verify(engine).runWashing(expectedProgram.getTimeInMinutes());
         callOrder.verify(waterPump).release();
         callOrder.verify(engine).spin();
+    }
+
+    @Test
+    void checkIfRunningWashingProgramWithPassedNullParametersCausesNPE() {
+        Assertions.assertThrows(NullPointerException.class, () -> washingMachine.start(null, null));
+    }
+
+    @Test
+    void checkIfRunningWashingProgramWithPassedNullBatchCausesNPE() {
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+
+        Assertions.assertThrows(NullPointerException.class, () -> washingMachine.start(null, configuration));
+    }
+
+    @Test
+    void checkIfRunningWashingProgramWithPassedNullConfigurationCausesInResultUnknownStatusError() {
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, null);
+
+        assertThat(status, is(equalTo(error(ErrorCode.UNKNOWN_ERROR, null))));
     }
 
     private LaundryStatus success(Program program) {
