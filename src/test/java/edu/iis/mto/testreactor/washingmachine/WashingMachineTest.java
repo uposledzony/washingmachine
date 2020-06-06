@@ -193,6 +193,24 @@ class WashingMachineTest {
         assertThat(status, is(equalTo(error(ErrorCode.WATER_PUMP_FAILURE, expectedProgram))));
     }
 
+    @Test
+    void programConfigurationWithoutSpinProvidedToWashingMachineShouldNotMadeEngineToSpin() throws EngineException {
+        var expectedProgram = Program.MEDIUM;
+        var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(false).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+        verify(engine, times(0)).spin();
+    }
+
+    @Test
+    void programConfigurationWithSpinProvidedToWashingMachineShouldMadeEngineToSpinExactlyOneTime() throws EngineException {
+        var expectedProgram = Program.MEDIUM;
+        var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+        verify(engine, times(1)).spin();
+    }
+
     private LaundryStatus success(Program program) {
         return LaundryStatus.builder()
                 .withErrorCode(ErrorCode.NO_ERROR)
