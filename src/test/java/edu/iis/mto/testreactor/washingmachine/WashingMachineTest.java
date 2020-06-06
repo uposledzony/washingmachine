@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.hamcrest.*;
 
 @ExtendWith(MockitoExtension.class)
 class WashingMachineTest {
@@ -17,16 +18,16 @@ class WashingMachineTest {
     private Engine engine;
     @Mock
     private WaterPump waterPump;
-    private WashingMachine washingMashine;
+    private WashingMachine washingMachine;
 
     @BeforeEach
     void setUp() throws Exception {
-        washingMashine = new WashingMachine(dirtDetector, engine, waterPump);
+        washingMachine = new WashingMachine(dirtDetector, engine, waterPump);
     }
 
     @Test
     void tooHeavyLaundryBatchShouldCauseInResultErrorLaundryStatus() {
-        fail("Not yet implemented");
+
     }
 
     @Test
@@ -36,6 +37,21 @@ class WashingMachineTest {
 
     @Test
     void woolLaundryBatchOfWeightGreaterThanMaxBatchWeightShouldCauseInResultErrorLaundryStatus() {
-        
+
+    }
+
+    private LaundryStatus success(Program program) {
+        return LaundryStatus.builder()
+                .withErrorCode(ErrorCode.NO_ERROR)
+                .withResult(Result.SUCCESS)
+                .withRunnedProgram(program).build();
+    }
+
+    private LaundryStatus error(ErrorCode code, Program program) {
+        return LaundryStatus.builder()
+                .withResult(Result.FAILURE)
+                .withRunnedProgram(program)
+                .withErrorCode(code)
+                .build();
     }
 }
