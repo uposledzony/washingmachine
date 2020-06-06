@@ -12,6 +12,7 @@ import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_K
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.AVERAGE_DEGREE;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -115,6 +116,23 @@ class WashingMachineTest {
 
         assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
         assertThat(status, is(success(Program.MEDIUM)));
+    }
+
+    @Test
+    void checkIfWashingProcessIsExecutedInProperOrder() throws WaterPumpException, EngineException {
+        when(dirtDetector.detectDirtDegree(Mockito.any(LaundryBatch.class)))
+                .thenReturn(AVERAGE_DEGREE);
+
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+        washingMachine.start(batch, configuration);
+        var callOrder = inOrder(waterPump, engine, dirtDetector);
+        var expectedProgram = Program.MEDIUM;
+        callOrder.verify(dirtDetector).detectDirtDegree(batch);
+        callOrder.verify(waterPump).pour(NORMAL_WEIGHT);
+        callOrder.verify(engine).runWashing(expectedProgram.getTimeInMinutes());
+        callOrder.verify(waterPump).release();
+        callOrder.verify(engine).spin();
     }
 
     private LaundryStatus success(Program program) {
