@@ -41,12 +41,13 @@ class WashingMachineTest {
     }
 
     @Test
-    void normalLaundryBatchOfNormalWeightShouldNotCauseInResultErrorLaundryStatus() {
+    void normalLaundryBatchOfNormalWeightShouldNotCauseInResultErrorLaundryStatusButWithSuccess() {
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
         var configuration = ProgramConfiguration.builder().withProgram(Program.MEDIUM).withSpin(true).build();
         var status = washingMachine.start(batch, configuration);
 
         assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
+        assertThat(status, is(success(Program.MEDIUM)));
     }
 
     @Test
@@ -66,6 +67,7 @@ class WashingMachineTest {
 
         assertThat(status, is(error(ErrorCode.TOO_HEAVY, null)));
     }
+    
 
     private LaundryStatus success(Program program) {
         return LaundryStatus.builder()
