@@ -15,8 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.AVERAGE_DEGREE;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WashingMachineTest {
@@ -131,6 +130,7 @@ class WashingMachineTest {
         washingMachine.start(batch, configuration);
         var callOrder = inOrder(waterPump, engine, dirtDetector);
         var expectedProgram = Program.MEDIUM;
+
         callOrder.verify(dirtDetector).detectDirtDegree(batch);
         callOrder.verify(waterPump).pour(NORMAL_WEIGHT);
         callOrder.verify(engine).runWashing(expectedProgram.getTimeInMinutes());
@@ -159,14 +159,38 @@ class WashingMachineTest {
     }
 
     @Test
-    void checkIfDirtDetectorCauseExceptionProgramShouldEndUpWithUnknownErrorStatus() {
+    void checkIfDirtDetectorCausedExceptionProgramShouldEndUpWithUnknownErrorStatus() {
         when(dirtDetector.detectDirtDegree(Mockito.any())).thenThrow(RuntimeException.class);
-        
+
         var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
         var status = washingMachine.start(batch, configuration);
 
         assertThat(status, is(equalTo(error(ErrorCode.UNKNOWN_ERROR, null))));
+    }
+
+    @Test
+    void checkIfEngineCausedEngineExceptionProgramShouldEndUpWithEngineFailureStatus() throws EngineException {
+        when(dirtDetector.detectDirtDegree(Mockito.any(LaundryBatch.class)))
+                .thenReturn(AVERAGE_DEGREE);
+        var expectedProgram = Program.MEDIUM;
+        doThrow(EngineException.class).when(engine).runWashing(expectedProgram.getTimeInMinutes());
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+
+        assertThat(status, is(equalTo(error(ErrorCode.ENGINE_FAILURE, expectedProgram))));
+    }
+
+    @Test
+    void checkIfWaterPumpCausedWaterPumpExceptionProgramShouldEndUpWithWaterPumpFailureStatus() throws WaterPumpException {
+        var expectedProgram = Program.MEDIUM;
+        doThrow(WaterPumpException.class).when(waterPump).release();
+        var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+
+        assertThat(status, is(equalTo(error(ErrorCode.WATER_PUMP_FAILURE, expectedProgram))));
     }
 
     private LaundryStatus success(Program program) {
