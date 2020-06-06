@@ -194,7 +194,7 @@ class WashingMachineTest {
     }
 
     @Test
-    void programConfigurationWithoutSpinProvidedToWashingMachineShouldNotMadeEngineToSpin() throws EngineException {
+    void programConfigurationWithoutSpinProvidedToWashingMachineShouldNotMakeEngineToSpin() throws EngineException {
         var expectedProgram = Program.MEDIUM;
         var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(false).build();
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
@@ -203,12 +203,30 @@ class WashingMachineTest {
     }
 
     @Test
-    void programConfigurationWithSpinProvidedToWashingMachineShouldMadeEngineToSpinExactlyOneTime() throws EngineException {
+    void programConfigurationWithSpinProvidedToWashingMachineShouldMakeEngineToSpinExactlyOneTime() throws EngineException {
         var expectedProgram = Program.MEDIUM;
         var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(true).build();
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
         var status = washingMachine.start(batch, configuration);
         verify(engine, times(1)).spin();
+    }
+
+    @Test
+    void programWithoutAutoDetectionOfDirtShouldNotCallDirtDetector() {
+        var expectedProgram = Program.MEDIUM;
+        var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+        verify(dirtDetector, times(0)).detectDirtDegree(batch);
+    }
+
+    @Test
+    void programWithAutoDetectionOfDirtShouldCallDirtDetector() {
+        var expectedProgram = Program.AUTODETECT;
+        var configuration = ProgramConfiguration.builder().withProgram(expectedProgram).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
+        verify(dirtDetector, times(1)).detectDirtDegree(batch);
     }
 
     private LaundryStatus success(Program program) {
