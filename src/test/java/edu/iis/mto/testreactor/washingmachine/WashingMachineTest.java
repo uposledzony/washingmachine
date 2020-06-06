@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.hamcrest.*;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 @ExtendWith(MockitoExtension.class)
 class WashingMachineTest {
@@ -22,8 +23,9 @@ class WashingMachineTest {
     private WaterPump waterPump;
     private WashingMachine washingMachine;
     private final double HALF_OF_MAX_WEIGHT = MAX_WEIGHT_KG / 2;
-
+    private final double NORMAL_WEIGHT = HALF_OF_MAX_WEIGHT - 1;
     private final Material STANDARD_MATERIAL = Material.COTTON;
+
     @BeforeEach
     void setUp() throws Exception {
         washingMachine = new WashingMachine(dirtDetector, engine, waterPump);
@@ -40,7 +42,11 @@ class WashingMachineTest {
 
     @Test
     void normalLaundryBatchOfNormalWeightShouldNotCauseInResultErrorLaundryStatus() {
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var configuration = ProgramConfiguration.builder().withProgram(Program.MEDIUM).withSpin(true).build();
+        var status = washingMachine.start(batch, configuration);
 
+        assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
     }
 
     @Test
