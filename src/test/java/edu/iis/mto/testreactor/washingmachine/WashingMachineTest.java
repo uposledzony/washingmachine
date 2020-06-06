@@ -70,7 +70,7 @@ class WashingMachineTest {
 
     @Test
     void jeansLaundryBatchOfWeightLesserThanHalfOfMaxBatchWeightShouldCauseInResultSuccessLaundryStatus() {
-        var batch = LaundryBatch.builder().withMaterialType(Material.JEANS).withWeightKg(HALF_OF_MAX_WEIGHT - 1).build();
+        var batch = LaundryBatch.builder().withMaterialType(Material.JEANS).withWeightKg(NORMAL_WEIGHT).build();
         var configuration = ProgramConfiguration.builder().withProgram(Program.MEDIUM).withSpin(true).build();
         var status = washingMachine.start(batch, configuration);
 
@@ -80,7 +80,7 @@ class WashingMachineTest {
 
     @Test
     void woolLaundryBatchOfWeightLesserThanHalfOfMaxBatchWeightShouldCauseInResultSuccessLaundryStatus() {
-        var batch = LaundryBatch.builder().withMaterialType(Material.WOOL).withWeightKg(HALF_OF_MAX_WEIGHT - 1).build();
+        var batch = LaundryBatch.builder().withMaterialType(Material.WOOL).withWeightKg(NORMAL_WEIGHT).build();
         var configuration = ProgramConfiguration.builder().withProgram(Program.MEDIUM).withSpin(true).build();
         var status = washingMachine.start(batch, configuration);
 
