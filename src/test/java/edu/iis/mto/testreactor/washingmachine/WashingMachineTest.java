@@ -6,11 +6,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.hamcrest.*;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
+import static edu.iis.mto.testreactor.washingmachine.WashingMachine.AVERAGE_DEGREE;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class WashingMachineTest {
@@ -25,6 +28,7 @@ class WashingMachineTest {
     private final double HALF_OF_MAX_WEIGHT = MAX_WEIGHT_KG / 2;
     private final double NORMAL_WEIGHT = HALF_OF_MAX_WEIGHT - 1;
     private final Material STANDARD_MATERIAL = Material.COTTON;
+    private final Percentage PERCENTAGE_GREATER_THEN_AVERAGE_PERCENTAGE = new Percentage(50 + 1);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -86,6 +90,19 @@ class WashingMachineTest {
 
         assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
         assertThat(status, is(success(Program.MEDIUM)));
+    }
+
+    @Test
+    void checkIfProgramIsSetToLongProgramIfStartProgramIsAutoDetectAndDirtDetectorReturnAnInformationAboutToMuchDirtPercentage() {
+        when(dirtDetector.detectDirtDegree(Mockito.any(LaundryBatch.class)))
+                .thenReturn(PERCENTAGE_GREATER_THEN_AVERAGE_PERCENTAGE);
+        
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+        var status = washingMachine.start(batch, configuration);
+
+        assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
+        assertThat(status, is(success(Program.LONG)));
     }
 
     private LaundryStatus success(Program program) {
