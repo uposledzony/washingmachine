@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Assertions.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.matchers.Any;
 import org.mockito.internal.matchers.Null;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
@@ -153,6 +154,17 @@ class WashingMachineTest {
     void checkIfRunningWashingProgramWithPassedNullConfigurationCausesInResultUnknownStatusError() {
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
         var status = washingMachine.start(batch, null);
+
+        assertThat(status, is(equalTo(error(ErrorCode.UNKNOWN_ERROR, null))));
+    }
+
+    @Test
+    void checkIfDirtDetectorCauseExceptionProgramShouldEndUpWithUnknownErrorStatus() {
+        when(dirtDetector.detectDirtDegree(Mockito.any())).thenThrow(RuntimeException.class);
+        
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var status = washingMachine.start(batch, configuration);
 
         assertThat(status, is(equalTo(error(ErrorCode.UNKNOWN_ERROR, null))));
     }
