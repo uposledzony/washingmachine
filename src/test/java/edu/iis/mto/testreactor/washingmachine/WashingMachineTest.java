@@ -25,8 +25,17 @@ class WashingMachineTest {
     }
 
     @Test
-    void test() {
+    void tooHeavyLaundryBatchShouldCauseInResultErrorLaundryStatus() {
         fail("Not yet implemented");
     }
 
+    @Test
+    void normalLaundryBatchOfNormalWeightShouldNotCauseInResultErrorLaundryStatus() {
+
+    }
+
+    @Test
+    void woolLaundryBatchOfWeightGreaterThanMaxBatchWeightShouldCauseInResultErrorLaundryStatus() {
+        
+    }
 }
