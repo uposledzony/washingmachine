@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.hamcrest.*;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.MAX_WEIGHT_KG;
 import static edu.iis.mto.testreactor.washingmachine.WashingMachine.AVERAGE_DEGREE;
 import static org.hamcrest.Matchers.is;
@@ -93,16 +92,29 @@ class WashingMachineTest {
     }
 
     @Test
-    void checkIfProgramIsSetToLongProgramIfStartProgramIsAutoDetectAndDirtDetectorReturnAnInformationAboutToMuchDirtPercentage() {
+    void checkIfProgramIsSetToLongProgramIfStartProgramIsAutoDetectAndDirtDetectorReturnAnInformationAboutTooMuchDirtPercentage() {
         when(dirtDetector.detectDirtDegree(Mockito.any(LaundryBatch.class)))
                 .thenReturn(PERCENTAGE_GREATER_THEN_AVERAGE_PERCENTAGE);
-        
+
         var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
         var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
         var status = washingMachine.start(batch, configuration);
 
         assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
         assertThat(status, is(success(Program.LONG)));
+    }
+
+    @Test
+    void checkIfProgramIsSetToMediumProgramIfStartProgramIsAutoDetectAndDirtDetectorReturnAnInformationAboutAverageDirtPercentage() {
+        when(dirtDetector.detectDirtDegree(Mockito.any(LaundryBatch.class)))
+                .thenReturn(AVERAGE_DEGREE);
+
+        var batch = LaundryBatch.builder().withMaterialType(STANDARD_MATERIAL).withWeightKg(NORMAL_WEIGHT).build();
+        var configuration = ProgramConfiguration.builder().withProgram(Program.AUTODETECT).withSpin(true).build();
+        var status = washingMachine.start(batch, configuration);
+
+        assertThat(status, is(not(error(ErrorCode.TOO_HEAVY, null))));
+        assertThat(status, is(success(Program.MEDIUM)));
     }
 
     private LaundryStatus success(Program program) {
